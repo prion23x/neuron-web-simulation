@@ -17,12 +17,13 @@ import {
   SHOW_FORCE_DIRECTION,
   FORCE_VECTOR_LENGTH,
   FORCE_VECTOR_WIDTH,
-  FORCE_VECTOR_HEAD_SIZE
+  FORCE_VECTOR_HEAD_SIZE,
+  MIN_FORCE_VECTOR_MAGNITUDE
+
 } from "./config.js";
-import { LEAK_INDICES, getIonConcentrationGradient } from "./particles_script.js";
+import { LEAK_INDICES } from "./particles_script.js";
+import { getIonConcentrationGradient } from "./stats_updater.js"
 
-
-const MIN_FORCE_VECTOR_MAGNITUDE = 1e-12;
 
 function resetForceVectors() {
   for (const ion of ION_POPULATION) {
@@ -54,7 +55,7 @@ function drawForceDirectionArrow(ctx, ion) {
 
   // normalizin to unit vectors
   const ux = vector.x / magnitude;
-  const uy = vector.y / magnitude; 
+  const uy = vector.y / magnitude;
 
   const startX = ion.position.x;
   const startY = ion.position.y;
@@ -128,7 +129,7 @@ Events.on(engine, "beforeUpdate", () => {
 
     for (const ion of ION_POPULATION) {
       if (ion.name !== "Na") continue;
-      
+
       // calculate distance from a particle to the channel
       const dx = ion.position.x - channel.position.x;
       const dy = ion.position.y - channel.position.y;
@@ -147,8 +148,6 @@ Events.on(engine, "beforeUpdate", () => {
     }
   }
 });
-
-
 
 
 Events.on(render, "afterRender", () => {

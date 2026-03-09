@@ -1,8 +1,9 @@
-import { createParticle } from "./particles_script.js";
+import { createParticle, LEAK_INDICES } from "./particles_script.js";
 import {
     CANVAS_WIDTH,
     CANVAS_HEIGHT,
     MEMBRANE,
+    ION_STATS,
 } from "./config.js";
 import { world } from "./init_script.js";
 const { World } = Matter;
@@ -19,7 +20,21 @@ const coordXInput = document.getElementById("coord-x");
 const coordYInput = document.getElementById("coord-y");
 const errorMsg = document.getElementById("coord-error");
 
+const statsPanel = document.getElementById("stats-panel");
+const statsFields = {
+    ion: document.getElementById("stat-ion"),
+    gradient: document.getElementById("stat-gradient"),
+    intraExtra: document.getElementById("stat-intra-extra"),
+    intraCount: document.getElementById("stat-intra-count"),
+    extraCount: document.getElementById("stat-extra-count"),
+    totalCount: document.getElementById("stat-total-count"),
+};
+
 let activeIon = "Na"; // default selected ion type.
+
+if (statsPanel && statsFields.ion) {
+    statsFields.ion.textContent = activeIon;
+}
 
 // Select Ion logic
 ion_buttons.forEach(button => {
@@ -27,6 +42,9 @@ ion_buttons.forEach(button => {
         ion_buttons.forEach(btn => btn.classList.remove("active"));
         button.classList.add("active");
         activeIon = button.textContent.trim();
+        if (statsFields.ion) {
+            statsFields.ion.textContent = activeIon;
+        }
     });
 });
 
@@ -80,7 +98,7 @@ addButton.addEventListener("click", () => {
         spawnY = y;
     }
 
-    
+
     for (let i = 0; i < count; i++) {
         // Apply slight random jitter to spawn location so particles don't overlap perfectly
         const jitterX = spawnX + (Math.random() - 0.5) * 40;
@@ -96,23 +114,38 @@ addButton.addEventListener("click", () => {
 const channelOpenButton = document.getElementById("channel-open-button");
 const channelCloseButton = document.getElementById("channel-close-button");
 
+setInterval(() => {
+    const intraCount = Math.round(ION_STATS.INTRA_IONS_COUNT[activeIon] ?? 0);
+    const extraCount = Math.round(ION_STATS.EXTRA_IONS_COUNT[activeIon] ?? 0);
+    const totalCount = Math.round(ION_STATS.TOTAL_IONS_COUNT[activeIon] ?? 0);
 
-// channelOpenButton.addEventListener("click", () => {
-//     const channelSegmentIndices = [0, 1, 2, 14, 15, 16, 28, 29, 30, 43, 44];
-//     for (const idx of channelSegmentIndices) {
-//         if (idx < MEMBRANE.segments.length) {
-//             MEMBRANE.segments[idx].render.fillStyle = "#fbbf24"; // Highlight channel segments
-//             MEMBRANE.segments[idx].isSensor = true; // Make channel segments dynamic
-//         }
-//     }
-// });
+    const intraPct = totalCount > 0 ? (intraCount / totalCount) * 100 : 0;
+    const extraPct = totalCount > 0 ? (extraCount / totalCount) * 100 : 0;
+    const gradient = totalCount > 0 ? intraCount / totalCount : 0;
 
-// channelCloseButton.addEventListener("click", () => {
-//     const channelSegmentIndices = [0, 1, 2, 14, 15, 16, 28, 29, 30, 43, 44];
-//     for (const idx of channelSegmentIndices) {
-//         if (idx < MEMBRANE.segments.length) {
-//             MEMBRANE.segments[idx].render.fillStyle = "#64748b"; // Reset channel segments to default color
-//             MEMBRANE.segments[idx].isSensor = false; // Make channel segments static
-//         }
-//     }
-// });
+    statsFields.gradient.textContent = gradient.toFixed(2);
+    statsFields.intraExtra.textContent = `${intraPct.toFixed(1)} : ${extraPct.toFixed(1)}`;
+    statsFields.intraCount.textContent = intraCount.toString();
+    statsFields.extraCount.textContent = extraCount.toString();
+    statsFields.totalCount.textContent = totalCount.toString();
+}, 500)
+
+channelOpenButton.addEventListener("click", () => {
+    for (const idx of LEAK_INDICES) {
+        const segment = MEMBRANE.segments[idx];
+        if (segment?.render) {// Verify existence 
+            segment.render.fillStyle = "#37ff00"; // Reset channel segments to default color
+            segment.isSensor = true; // Make channel segments static
+        }
+    }
+});
+channelCloseButton.addEventListener("click", () => {
+    for (const idx of LEAK_INDICES) {
+        const segment = MEMBRANE.segments[idx];
+        if (segment?.render) {// Verify existence 
+            segment.render.fillStyle = "#300058"; // Reset channel segments to default color
+            segment.isSensor = false; // Make channel segments static
+        }
+    }
+});
+

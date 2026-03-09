@@ -80,7 +80,6 @@ CYTOPLASM.body = Bodies.polygon(cx, cy, 128, CYTOPLASM.radius, {
   render: { fillStyle: CYTOPLASM.color }
 });
 
-console.log('MMMEEME: ', MEMBRANE);
 
 // Add everything to the world sequentiilly.
 World.add(world, walls);
