@@ -2,8 +2,8 @@
 // --------------------------------------------------| SYSTEM CONFIGURATION |-------------------------------------------------- //
 
 
-export const CANVAS_WIDTH = 880;
-export const CANVAS_HEIGHT = 880;
+export const CANVAS_WIDTH = 1400;
+export const CANVAS_HEIGHT = 950;
 export const cx = CANVAS_WIDTH / 2; // a convention for the center of canvas (x)
 export const cy = CANVAS_HEIGHT / 2; // a convention for the center of canvas (y)
 export const CANVAS_BACKGROUND_COLOR = "#0f172a";
@@ -31,18 +31,25 @@ export const ION_NAMES = Object.keys(ionConfig);
 // It also blocks the particles from escaping the cell unless the channels are open. 
 export const MEMBRANE = {
   segments: [], // Contains the segment/bodies that make up the membrane. Used for channel and collision management.
-  radius: 250, // literally, the size of the membrane.
-  segment_num: 50, // ↑ = tighter packing / less gaps.
+  radius: 300, // literally, the size of the membrane.
+  segment_num: 40, // ↑ = tighter packing / less gaps.
   segment_length: 20, // the side to side size of each segment.
-  segment_thickness: 30, // in-to-out size of each segment.
+  segment_thickness: 50, // in-to-out size of each segment.
   segment_chamfer: 2, // the roundness of the segment edges.
   segment_color: "#2557afa9", // the color of the membrane segments.
   segment_friction: 0.0 // No friction for smooth sliding of particles along the membrane
 };
 
-export const CHANNEL_PROXIMITY = 120;                // same value used for force
-export const CHANNEL_IMPACT_COLOR = "#37ff005e"; // orange glow
-export const SHOW_CHANNEL_IMPACT_RADIUS = true;     // ← toggle this
+export const CHANNEL_PROXIMITY = 300; // Distance at which the channels affect the particles near by
+export const CHANNEL_IMPACT_COLOR = "#37ff005e";  // The color indicating the range of channel force impact
+export const LEAK_CONFIG = {
+  Na: { segment_indices: [0, 10, 20, 30] },
+  K: { segment_indices: [1, 11, 21, 31] },
+  Cl: { segment_indices: [2, 12, 22, 32] },
+  Ca: { segment_indices: [3, 13, 23, 33] },
+  Mg: { segment_indices: [4, 14, 24, 34] }
+};
+export const LEAK_INDICES = LEAK_CONFIG.Na.segment_indices;
 
 
 // PURPOSE OF CYTOPLASM:
@@ -63,14 +70,10 @@ export const CYTOPLASM = {
 
 export const ION_POPULATION = []; // List of all ion particles in the simulation, used for easy access and management of ions.
 
-export const SHOW_LABELS = true; // Draws labels on top of particles (Na, K, etc.)
-export const SHOW_FORCE_RADIUS = true; // Draws a circle around each particle to visualize the interaction radius.
-export const SHOW_FORCE_DIRECTION = true; // Draws a direction arrow for the net force on each ion.
-
 export const FORCE_VECTOR_LENGTH = 28; // Arrow length in pixels (normalized force direction).
 export const FORCE_VECTOR_WIDTH = 2; // Arrow line width.
 export const FORCE_VECTOR_HEAD_SIZE = 8; // Arrow head size in pixels.
-export const MIN_FORCE_VECTOR_MAGNITUDE = 1e-12; // Minimal force needed to affect the body to draw an arrow (filters noise)
+export const MIN_FORCE_VECTOR_MAGNITUDE = 1e-5; // Minimal force needed to affect the body to draw an arrow (filters noise)
 
 
 // Why radius^2? at small scale the forces are very strong, so we need to scale them down more aggressively to avoid chaos.

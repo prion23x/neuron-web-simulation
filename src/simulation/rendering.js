@@ -1,28 +1,32 @@
-import { render, engine } from "./init_script.js";
+import { render, engine } from "./init.js";
 const { Body, Events } = Matter;
 import {
   cx,
   cy,
   MEMBRANE,
   ION_POPULATION,
-  SHOW_LABELS,
-  SHOW_FORCE_RADIUS,
   ION_FIELD_RADIUS,
   ION_FORCE_SCALE,
   RANDOM_JITTER_FORCE,
   GLOBAL_TEMPERATURE,
   CHANNEL_PROXIMITY,
   CHANNEL_IMPACT_COLOR,
-  SHOW_CHANNEL_IMPACT_RADIUS,
-  SHOW_FORCE_DIRECTION,
   FORCE_VECTOR_LENGTH,
   FORCE_VECTOR_WIDTH,
   FORCE_VECTOR_HEAD_SIZE,
-  MIN_FORCE_VECTOR_MAGNITUDE
+  MIN_FORCE_VECTOR_MAGNITUDE,
+  LEAK_INDICES,
+  LEAK_CONFIG
 
-} from "./config.js";
-import { LEAK_INDICES } from "./particles_script.js";
-import { getIonConcentrationGradient } from "./stats_updater.js"
+} from "../config/config.js";
+import { getIonConcentrationGradient } from "./stats.js"
+import {
+  SHOW_LABELS,
+  SHOW_FORCE_RADIUS,
+  SHOW_FORCE_DIRECTION,
+  SHOW_CHANNEL_IMPACT_RADIUS,
+  SHOW_LEAK_CHANNEL_LABELS
+} from "./view.js";
 
 
 function resetForceVectors() {
@@ -202,5 +206,23 @@ Events.on(render, "afterRender", () => {
         ctx.stroke();
       }
     }
+  }
+
+  if (SHOW_LEAK_CHANNEL_LABELS) {
+    ctx.save();
+    ctx.font = "italic bold 12px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (const [ionName, cfg] of Object.entries(LEAK_CONFIG)) {
+      for (const idx of cfg.segment_indices) {
+        const segment = MEMBRANE.segments[idx];
+        if (!segment) continue;
+        ctx.fillText(ionName, segment.position.x, segment.position.y);
+      }
+    }
+
+    ctx.restore();
   }
 })

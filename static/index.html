@@ -9,6 +9,12 @@
 
 <body>
   <canvas id="world"></canvas>
+
+  <div id="panel-toggles">
+    <button id="toggle-stats-panel" type="button">Hide Stats</button>
+    <button id="toggle-control-panel" type="button">Hide Controls</button>
+  </div>
+
   <div id="stats-panel">
     <h3>Simulation Stats</h3>
 
@@ -21,10 +27,11 @@
     <div class="stat-row"><span>Inside count:</span><span id="stat-intra-count">0</span></div>
     <div class="stat-row"><span>Outside count:</span><span id="stat-extra-count">0</span></div>
     <div class="stat-row"><span>Total count:</span><span id="stat-total-count">0</span></div>
-  </div>
 
+    <hr>
 
-
+    <h4 class="panel-subtitle">Quick Concentration Indicator</h4>
+    <div id="quick-concentration-list"></div>
   </div>
 
   <div id="control-panel">
@@ -72,14 +79,13 @@
     <div id="channel-control">
       <button id="channel-open-button">Open Channels</button>
       <button id="channel-close-button">Close Channels</button>
+      <button id="channel-openall-button">Open All</button>
+      <button id="channel-closeall-button">Close All</button>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <script type="module" src="../ui_script.js"></script>
-  <script type="module" src="../init_script.js"></script>
-  <script type="module" src="../particles_script.js"></script>
-  <script type="module" src="../rendering_script.js"></script>
+  <script type="module" src="../src/main.js"></script>
 </body>
 
 </html>

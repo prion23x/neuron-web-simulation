@@ -10,8 +10,7 @@ import {
   MEMBRANE,
   CYTOPLASM,
   ION_POPULATION,
-  
-} from "./config.js";
+} from "../config/config.js";
 
 const { Engine, Render, Runner, World, Bodies } = Matter;
 

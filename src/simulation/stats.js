@@ -1,14 +1,11 @@
 import {
     cx,
     cy,
-    ionConfig,
-    MEMBRANE,
     CYTOPLASM,
     ION_POPULATION,
     ION_STATS,
-    _createZeroIonDict,
-    ION_NAMES
-} from "./config.js";
+    _createZeroIonDict
+} from "../config/config.js";
 
 
 
@@ -188,4 +185,3 @@ setInterval(() => {
 
     // console.log(getIonConcentrationGradient("Na"));
 }, 200);
-

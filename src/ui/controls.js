@@ -1,12 +1,14 @@
-import { createParticle, LEAK_INDICES } from "./particles_script.js";
+import { createParticle } from "../simulation/particles.js";
 import {
     CANVAS_WIDTH,
     CANVAS_HEIGHT,
     MEMBRANE,
     ION_STATS,
-} from "./config.js";
-import { world } from "./init_script.js";
-const { World } = Matter;
+    ION_NAMES,
+    LEAK_INDICES,
+    LEAK_CONFIG,
+    ionConfig,
+} from "../config/config.js";
 
 const MAX_X = CANVAS_WIDTH;
 const MAX_Y = CANVAS_HEIGHT;
@@ -21,6 +23,10 @@ const coordYInput = document.getElementById("coord-y");
 const errorMsg = document.getElementById("coord-error");
 
 const statsPanel = document.getElementById("stats-panel");
+const controlPanel = document.getElementById("control-panel");
+const toggleStatsPanelButton = document.getElementById("toggle-stats-panel");
+const toggleControlPanelButton = document.getElementById("toggle-control-panel");
+const quickConcentrationList = document.getElementById("quick-concentration-list");
 const statsFields = {
     ion: document.getElementById("stat-ion"),
     gradient: document.getElementById("stat-gradient"),
@@ -29,12 +35,41 @@ const statsFields = {
     extraCount: document.getElementById("stat-extra-count"),
     totalCount: document.getElementById("stat-total-count"),
 };
+const quickConcentrationFields = {};
+const quickConcentrationRows = {};
 
 let activeIon = "Na"; // default selected ion type.
 
 if (statsPanel && statsFields.ion) {
     statsFields.ion.textContent = activeIon;
 }
+
+if (quickConcentrationList) {
+    ION_NAMES.forEach((ion) => {
+        const row = document.createElement("div");
+        row.className = "quick-concentration-row";
+        row.dataset.ion = ion;
+        row.innerHTML = `
+            <span class="ion-name">${ion}</span>
+            <span class="ion-value">0.0 : 0.0</span>
+        `;
+        quickConcentrationList.appendChild(row);
+        quickConcentrationFields[ion] = row.querySelector(".ion-value");
+        quickConcentrationRows[ion] = row;
+    });
+}
+
+function setupPanelToggle(button, panel, panelName) {
+    if (!button || !panel) return;
+
+    button.addEventListener("click", () => {
+        const isHidden = panel.classList.toggle("panel-hidden");
+        button.textContent = `${isHidden ? "Show" : "Hide"} ${panelName}`;
+    });
+}
+
+setupPanelToggle(toggleStatsPanelButton, statsPanel, "Stats");
+setupPanelToggle(toggleControlPanelButton, controlPanel, "Controls");
 
 // Select Ion logic
 ion_buttons.forEach(button => {
@@ -113,6 +148,8 @@ addButton.addEventListener("click", () => {
 
 const channelOpenButton = document.getElementById("channel-open-button");
 const channelCloseButton = document.getElementById("channel-close-button");
+const channelOpenAllButton = document.getElementById("channel-openall-button");
+const channelCloseAllButton = document.getElementById("channel-closeall-button");
 
 setInterval(() => {
     const intraCount = Math.round(ION_STATS.INTRA_IONS_COUNT[activeIon] ?? 0);
@@ -128,24 +165,72 @@ setInterval(() => {
     statsFields.intraCount.textContent = intraCount.toString();
     statsFields.extraCount.textContent = extraCount.toString();
     statsFields.totalCount.textContent = totalCount.toString();
-}, 500)
+
+    ION_NAMES.forEach((ion) => {
+        const ionIntraCount = Math.round(ION_STATS.INTRA_IONS_COUNT[ion] ?? 0);
+        const ionExtraCount = Math.round(ION_STATS.EXTRA_IONS_COUNT[ion] ?? 0);
+        const ionTotalCount = Math.round(ION_STATS.TOTAL_IONS_COUNT[ion] ?? 0);
+        const ionIntraPct = ionTotalCount > 0 ? (ionIntraCount / ionTotalCount) * 100 : 0;
+        const ionExtraPct = ionTotalCount > 0 ? (ionExtraCount / ionTotalCount) * 100 : 0;
+
+        if (quickConcentrationFields[ion]) {
+            quickConcentrationFields[ion].textContent = `${ionIntraPct.toFixed(1)} : ${ionExtraPct.toFixed(1)}`;
+        }
+
+        if (quickConcentrationRows[ion]) {
+            quickConcentrationRows[ion].classList.toggle("active", ion === activeIon);
+        }
+    });
+}, 200)
 
 channelOpenButton.addEventListener("click", () => {
-    for (const idx of LEAK_INDICES) {
+    const cfg = LEAK_CONFIG[activeIon];
+    for (const idx of cfg.segment_indices) {
         const segment = MEMBRANE.segments[idx];
-        if (segment?.render) {// Verify existence 
-            segment.render.fillStyle = "#37ff00"; // Reset channel segments to default color
-            segment.isSensor = true; // Make channel segments static
+        if (segment?.render) {
+            segment.render.fillStyle = ionConfig[activeIon].color;
+            segment.isSensor = true; // make permeable
+
         }
     }
 });
 channelCloseButton.addEventListener("click", () => {
-    for (const idx of LEAK_INDICES) {
+    const cfg = LEAK_CONFIG[activeIon];
+    for (const idx of cfg.segment_indices) {
         const segment = MEMBRANE.segments[idx];
-        if (segment?.render) {// Verify existence 
+        if (segment?.render) {
             segment.render.fillStyle = "#300058"; // Reset channel segments to default color
-            segment.isSensor = false; // Make channel segments static
+            segment.isSensor = false; // make impermeable
+
         }
     }
 });
 
+channelOpenAllButton.addEventListener("click", () => {
+    for (const ionName of ION_NAMES) {
+        const cfg = LEAK_CONFIG[ionName];
+        const color = ionConfig[ionName].color;
+        for (const idx of cfg.segment_indices) {
+            const segment = MEMBRANE.segments[idx];
+            if (segment?.render) {
+                segment.render.fillStyle = color;
+                segment.isSensor = true; // make permeable
+
+            }
+        }
+    }
+});
+
+channelCloseAllButton.addEventListener("click", () => {
+    for (const ionName of ION_NAMES) {
+        const cfg = LEAK_CONFIG[ionName];
+        for (const idx of cfg.segment_indices) {
+            const segment = MEMBRANE.segments[idx];
+            if (segment?.render) {
+                segment.render.fillStyle = "#300058"; // Reset channel segments to default color
+                segment.isSensor = false; // make impermeable
+
+            }
+        }
+    }
+});
